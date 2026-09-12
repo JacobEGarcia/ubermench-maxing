@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ubermench Maxing - Become the Overman, Incrementally</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;600;800&family=Libre+Caslon+Text:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{--cream:#F2E9D8;--ink:#1A1712;--orange:#D9551E;--hair:#1A1712}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--cream);color:var(--ink);font-family:'Libre Franklin',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 14px 60px}
+.book{width:min(620px,96vw);border:1.5px solid var(--ink);margin-top:34px;background:var(--cream)}
+.band{background:var(--orange);color:var(--cream);padding:26px 28px 22px;border-bottom:1.5px solid var(--ink)}
+.band .series{font-size:10px;letter-spacing:.34em;text-transform:uppercase;font-weight:600;opacity:.9}
+h1{font-size:clamp(30px,5.4vw,44px);font-weight:800;text-transform:uppercase;letter-spacing:-.01em;line-height:1.02;margin-top:8px}
+.sub{font-family:'Libre Caslon Text',serif;font-style:italic;font-size:14px;margin-top:10px;opacity:.95}
+.inner{padding:24px 28px 28px}
+#hud{display:grid;grid-template-columns:repeat(4,1fr);border:1.5px solid var(--ink);margin-bottom:22px}
+#hud .cell{padding:12px 10px;border-right:1.5px solid var(--ink);text-align:center}
+#hud .cell:last-child{border-right:none}
+#hud .k{font-size:9px;letter-spacing:.26em;text-transform:uppercase;font-weight:600;color:var(--ink);opacity:.65}
+#hud .v{font-size:22px;font-weight:800;margin-top:4px}
+#hud .v.orange{color:var(--orange)}
+.sec-label{font-size:10px;letter-spacing:.3em;text-transform:uppercase;font-weight:600;margin-bottom:12px;border-bottom:1.5px solid var(--ink);padding-bottom:8px}
+#actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:560px){#actions{grid-template-columns:1fr}#hud{grid-template-columns:repeat(2,1fr)}#hud .cell:nth-child(2){border-right:none}#hud .cell:nth-child(-n+2){border-bottom:1.5px solid var(--ink)}}
+button{cursor:pointer;background:transparent;color:var(--ink);border:1.5px solid var(--ink);border-radius:0;padding:14px 16px;font-family:'Libre Franklin',sans-serif;font-weight:600;font-size:13px;text-align:left;transition:.12s}
+button:hover{background:var(--ink);color:var(--cream)}
+button small{display:block;font-weight:400;font-size:11px;margin-top:4px;opacity:.7}
+#rank{margin:22px 0 6px;font-family:'Libre Caslon Text',serif;font-style:italic;font-size:16px;text-align:center}
+#rank b{font-family:'Libre Franklin',sans-serif;font-style:normal;font-weight:800;color:var(--orange);text-transform:uppercase;letter-spacing:.08em;font-size:13px}
+#log{margin-top:14px;border-top:1.5px solid var(--ink);padding-top:14px;font-family:'Libre Caslon Text',serif;font-size:13.5px;line-height:1.9;color:var(--ink);min-height:60px}
+#log div::before{content:"\00B6  ";color:var(--orange);font-weight:700}
+.colophon{margin-top:26px;font-size:9px;letter-spacing:.3em;text-transform:uppercase;opacity:.55;text-align:center}
+</style>
+</head>
+<body>
+<div class="book">
+  <div class="band">
+    <div class="series">Self-Overcoming Paperbacks &middot; No. 130</div>
+    <h1>Ubermench Maxing</h1>
+    <div class="sub">nietzsche, but a habit tracker</div>
+  </div>
+  <div class="inner">
+    <div id="hud">
+      <div class="cell"><div class="k">Day</div><div class="v" id="hDay">1</div></div>
+      <div class="cell"><div class="k">Will</div><div class="v" id="hWill">10</div></div>
+      <div class="cell"><div class="k">Wisdom</div><div class="v" id="hWis">10</div></div>
+      <div class="cell"><div class="k">Swagger</div><div class="v orange" id="hSwag">10</div></div>
+    </div>
+    <div class="sec-label">Daily Exercises</div>
+    <div id="actions"></div>
+    <div id="rank">current form: <b id="rankV">mere mortal</b></div>
+    <div id="log"></div>
+    <div class="colophon">Set in Libre Franklin &amp; Caslon &middot; Printed nowhere</div>
+  </div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const S={will:10,wisdom:10,swagger:10,day:1};
+const ACTS=[
+ ['Read something difficult','wisdom +6, will +2',s=>{s.wisdom+=6;s.will+=2}],
+ ['Cold shower, stared down','will +6, swagger +2',s=>{s.will+=6;s.swagger+=2}],
+ ['Create values (own ones)','wisdom +4, swagger +4',s=>{s.wisdom+=4;s.swagger+=4}],
+ ['Dance, per Zarathustra','swagger +6, will +2',s=>{s.swagger+=6;s.will+=2}],
+ ['Amor fati a minor setback','will +4, wisdom +3',s=>{s.will+=4;s.wisdom+=3}],
+ ['Decline a herd opinion','swagger +5, wisdom +2',s=>{s.swagger+=5;s.wisdom+=2}]];
+const RANKS=[[0,'mere mortal'],[40,'striver'],[90,'free spirit'],[160,'overman adjacent'],[260,'UBERMENCH']];
+function clamp(x){return Math.min(400,x);}
+function rank(){const t=S.will+S.wisdom+S.swagger;let r=RANKS[0][1];for(const[min,name]of RANKS)if(t>=min)r=name;return r;}
+function hud(){$('hDay').textContent=S.day;$('hWill').textContent=S.will;$('hWis').textContent=S.wisdom;$('hSwag').textContent=S.swagger;$('rankV').textContent=rank();}
+function log(t){const d=document.createElement('div');d.textContent='Day '+S.day+': '+t;$('log').prepend(d);}
+const el=$('actions');
+ACTS.forEach(a=>{
+ const b=document.createElement('button');b.innerHTML=a[0]+'<small>'+a[1]+'</small>';
+ b.onclick=()=>{a[2](S);S.will=clamp(S.will);S.wisdom=clamp(S.wisdom);S.swagger=clamp(S.swagger);S.day++;log(a[0]+'.');hud();};
+ el.appendChild(b);});
+hud();log('The maxing begins. God is dead; the tracker is not.');
+</script>
+</body>
+</html>
